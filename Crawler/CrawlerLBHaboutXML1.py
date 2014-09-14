@@ -7,19 +7,25 @@ import urlparse
 import time
 import re
 from math import ceil
-'''test='http://store.steampowered.com/sub/17001/?snr=1_7_7_230_150_1'
-category=re.search('(\w+):(...)(\w+).(\w+).(\w+).(\w+).(\w+)',test)
-print category.group(6),category.group(7)
-dataFormat='http://steamsales.rhekua.com/xml/sales/%s_%d.xml?curr=78'
-print dataFormat%(category.group(6),int(category.group(7)))'''
+
+'''
+抓取XML及content，如此一來可確立有XML的檔案必有content 
+並且記錄成功與失敗的連結數
+
+'''
+#設定記錄數值
 success=0
 fail=0
+#開啟名冊檔案
 f=open('test2.txt')
 for i in f.readlines():
-    category=re.search('(\w+):(...)(\w+).(\w+).(\w+).(\w+).(\w+)',i)
-    #tempFile='try/'+category.group(6)+'_'+category.group(7)+'.txt'
-    #print tempFile
+    #設定正規表示法抓取種類及標號
+	category=re.search('(\w+):(...)(\w+).(\w+).(\w+).(\w+).(\w+)',i)
     rs=requests.session()
+	'''
+	若連結為video，必須先行轉成app或sub，
+	在此按大數法則，先將video都轉址為app，再進行判定。
+	'''
     if(category.group(6)=='video'):
         dataFormat='http://steamsales.rhekua.com/xml/sales/app_%d.xml?curr=78'
         response=rs.get(dataFormat%(int(category.group(7))))
