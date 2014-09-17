@@ -41,6 +41,10 @@ for i in chara:
 
 #找出開發商的資訊、發售日、發行語言
 #print content.find('div',{'class':'details_block'}).text
+#print content.find('div',{'class':'details_block'})
+#for a in content.find('div',{'class':'details_block'}).findAll('b')[1:5]:
+#    print a.find('a').text
+#    print a.text
 '''print content.find('div',{'class':'details_block'}).text.replace('\t','').replace('\n','')
 text = content.find('table',{'class':'game_language_options'}).findAll('tr')[1:]
 for a in text:
@@ -49,4 +53,3 @@ for a in text:
 #找出評論，未完成，網頁間id可能不同，不能套用
 '''if content.find('div',{'id':'review_box partial'}) is None:
     print content.find('div',{'id':'Reviews_all'}).text'''
-
