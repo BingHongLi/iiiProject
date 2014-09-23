@@ -15,7 +15,7 @@ def crawler_steam_pages_links(input_file, output_folder):
         if soup.title.text == 'Welcome to Steam' or  soup.title.text.encode('utf-8') == '歡迎來到 Steam':
             return_index.append(link.strip())
         elif soup.title.text == 'Site Error':
-                    return_limited_area.append(link.strip())
+            return_limited_area.append(link.strip())
         elif soup.find('body', class_='v6 agecheck') is not None:
             return_limited_18.append(link.strip())
         else:
