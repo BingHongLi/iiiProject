@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 def crawler_steam_pages_links(input_file, output_folder):
     return_index = []
     return_limited_area = []
-    return_18 = []
+    return_limited_18 = []
     return_200 = []
     i = 1
 
@@ -16,8 +16,8 @@ def crawler_steam_pages_links(input_file, output_folder):
             return_index.append(link.strip())
         elif soup.title.text == 'Site Error':
                     return_limited_area.append(link.strip())
-        elif soup.select('html body div#main div#main_content div#agegate_box form h2') == '<h2>Please enter your birth date to continue:</h2>' or soup.select('html body div#main div#main_content div#agegate_box form h2') == '<h2>請輸入您的生日以繼續：</h2>':
-            return_18.append(link.strip())
+        elif soup.find('body', class_='v6 agecheck') is not None:
+            return_limited_18.append(link.strip())
         else:
             return_200.append(link.strip())
         print i
@@ -32,13 +32,16 @@ def crawler_steam_pages_links(input_file, output_folder):
     file_W_return_limited_area.write('\n'.join(return_limited_area))
     file_W_return_limited_area.close()
 
-    file_W_return_18 = open(output_folder + '18.txt', 'a')
-    file_W_return_18.write('\n'.join(return_18))
-    file_W_return_18.close()
+    file_W_return_limited_18 = open(output_folder + 'limited_18.txt', 'a')
+    file_W_return_limited_18.write('\n'.join(return_limited_18))
+    file_W_return_limited_18.close()
 
     file_W_return_200 = open(output_folder + '200.txt', 'a')
     file_W_return_200.write('\n'.join(return_200))
     file_W_return_200.close()
 
-#crawler_steam_pages_links('C:/Users/BigData/Desktop/200.txt', 'C:/Users/BigData/Desktop/001/')
+def main():
+    crawler_steam_pages_links('C:/Users/BigData/Desktop/200.txt', 'C:/Users/BigData/Desktop/001/')
 
+if __name__ == "__main__":
+    main()
