@@ -2,7 +2,7 @@
 # install package about text mining and twitter
 # I will introduce text mining by using example about twitter
 install.packages("http://cran.r-project.org/src/contrib/Archive/Snowball/Snowball_0.0-11.tar.gz", repos = NULL, type="source")
-install.packages(c("tm","twitteR","SnowballC",'RWeka','RWekajars','ggplot2'))
+install.packages(c("tm","twitteR","SnowballC",'RWeka','RWekajars','ggplot2','fpc'))
 library(tm)
 library(twitteR)
 library(Snowball)
@@ -211,4 +211,108 @@ wordcloud(words=names(wordFreq), freq=wordFreq, min.freq=3, random.order=F,color
 #彩色
 wordcloud(words=names(wordFreq),freq=wordFreq, scale=c(5,.2),min.freq=3, max.words=Inf, random.order=F,rot.per=.15,random.color=TRUE,colors=rainbow(7))
 
-#讀至104頁
+### word cluster
+## We then try to find clusters of words with hierarchical clustering. Sparse terms are removed, 
+## so that the plot of clustering will not be crowded with words. 
+# 嘗試去為單字作階層式分群，並且將次數稀疏的字移除，如此一來圖便不會顯得擁擠
+## Then the distances between terms are calculated with dist() after scaling. 
+## After that, the terms are clustered with hclust() and the dendrogram is cut into 10 clusters. 
+# 在量化之後，去使用dist()函式計算單字間距離，再使用hclust函數，此法預設切出十個clusters
+## The agglomeration method is set to ward, which denotes the increase in variance when two clusters are merged. 
+## Some other options are single linkage, complete linkage, average linkage, median and centroid.
+## remove sparse terms
+myTdm2 <- removeSparseTerms(myTdm, sparse=0.95)
+m2 <- as.matrix(myTdm2)
+## cluster terms
+distMatrix <- dist(scale(m2))
+fit <- hclust(distMatrix, method="ward")
+plot(fit)
+## cut tree into 10 clusters
+rect.hclust(fit, k=10)
+(groups <- cutree(fit, k=10))
+
+## We can also see cluster on time series, R packages, parallel computing, R codes and
+## examples, and tutorial and slides.
+# 在時間序列裡一樣可看到分群方法，在R的套件parallel可看到例子與教學。
+
+## Clustering Tweets with the k-means Algorithm
+# 使用k-means演算法去對文章作分群
+## We first try k-means clustering, which takes the values in the matrix as numeric. 
+# 嘗試使用k-mean必須先將矩陣內的值以numerice型態儲存
+## We transpose the term-document matrix to a document-term one. 
+# 先做一個TF-IDF矩陣
+## The tweets are then clustered with kmeans() with the number of clusters set to eight. 
+# 在範例中，會使用kmean並且將群數設為8群
+## After that, we check the popular words in every cluster and also the cluster centers. 
+# 找出每一群中出現最多次的字，並且設為中心點
+## Note that a fixed random seed is set with set.seed() before running kmeans(), 
+## so that the clustering result can be reproduced. It is for the convenience of book writing,
+## and it is unnecessary for readers to set a random seed in their code.
+# 設定隨機種子 可設可不設
+
+## transpose the matrix to cluster documents (tweets)
+# 矩陣轉置
+m3 <- t(m2)
+## set a fixed random seed
+set.seed(122)
+## k-means clustering of tweets
+k <- 8
+kmeansResult <- kmeans(m3, k)
+## cluster centers
+# 顯示centers的數值到小數點後三位
+round(kmeansResult$centers, digits=3)
+
+## To make it easy to find what the clusters are about, 
+## we then check the top three words in every cluster.
+# 為使尋找方便，可檢查每一個群中出現最多次的前三個字詞
+for (i in 1:k) {
+   cat(paste("cluster ", i, ": ", sep=""))
+   s <- sort(kmeansResult$centers[i,], decreasing=T)
+   cat(names(s)[1:3], "\n")
+   # print the tweets of every cluster
+   # print(rdmTweets[which(kmeansResult$cluster==i)])
+}
+## From the above top words and centers of clusters, 
+## we can see that the clusters are of different topics. 
+# 從每一個群中的最高次數單字中，我們可以發現每一群都代表著不同主題
+## For instance, cluster 1 focuses on R codes and examples, 
+## cluster 2 on data mining with R, cluster 4 on parallel computing in R, 
+## cluster 6 on R packages and cluster 7 on slides of time
+## series analysis with R. We can also see that, all clusters, 
+## except for cluster 3, 5 & 8, focus on R.
+## Cluster 3, 5 & 8 are about general information on data mining and are not limited to R. 
+## Cluster 3 is on social network analysis, 
+## cluster 5 on data mining tutorials, and cluster 8 on positions for data mining research.
+# 講述著每一個群代表的字
+
+
+### Clustering Tweets with the k-medoids Algorithm
+# 使用k-medoids Algorithm 作分群
+
+## We then try k-medoids clustering with the Partitioning Around Medoids (PAM) algorithm,
+# 嘗試分隔環繞物件法(PAM) 作資料群集
+## which uses medoids (representative objects) instead of means to represent clusters. 
+# 嘗試群集去找出代表群的均值
+## It is more robust to noise and outliers than k-means clustering, 
+# 此方法在相較k-means clustering 
+## and provides a display of the silhouette plot to show the quality of clustering. 
+## In the example below, we use function pamk() from package fpc [Hennig,2010], 
+## which calls the function pam() with the number of clusters estimated by optimum averagesilhouette.
+
+library(fpc)
+## partitioning around medoids with estimation of number of clusters
+pamResult <- pamk(m3, metric="manhattan")
+## number of clusters identified
+(k <- pamResult$nc)
+pamResult <- pamResult$pamobject
+# print cluster medoids
+for (i in 1:k) {
+  cat(paste("cluster", i, ": "))
+  cat(colnames(pamResult$medoids)[which(pamResult$medoids[i,]==1)], "\n")
+  ## print tweets in cluster i
+  ## print(rdmTweets[pamResult$clustering==i])
+}
+# plot clustering result
+layout(matrix(c(1,2),2,1)) # set to two graphs per page
+plot(pamResult, color=F, labels=4, lines=0, cex=.8, col.clus=1,col.p=pamResult$clustering)
+layout(matrix(1)) # change back to one graph per page
