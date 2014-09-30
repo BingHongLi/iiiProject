@@ -22,8 +22,6 @@ def isthereanydeal_history_ajaxs(input_file, output_folder):
     row = script_text[1]
     game_name = script_text[2]
     
-    #m = re.findall('id:\'\w*\'', col)[1:]
-    #company = [temp.replace('id:', '').replace('\'', '') for temp in m]
     m = re.findall('label:\'[a-zA-Z ]+\'', col)[1:]
     company = [temp.replace('label:', '').replace('\'', '') for temp in m]
    
@@ -51,9 +49,9 @@ def isthereanydeal_history_ajaxs(input_file, output_folder):
             special_day.append(special_days.copy())
     change_to_json = json.dumps(special_day, ensure_ascii=False, sort_keys=True)
     #change_to_json = json.dumps(special_day, ensure_ascii=False, sort_keys=True, indent=4)
-    print special_day[:5]
-    #with open(output_folder + input_file + '_company__.txt', 'a') as file_W:
-        #file_W.write(change_to_json.encode('utf8'))
+
+    with open(output_folder + input_file + '_company.json', 'a') as file_W:
+        file_W.write(change_to_json.encode('utf8'))
         
 def main():
     isthereanydeal_history_ajaxs('findingteddy', 'C:/Users/BigData/Desktop/')
