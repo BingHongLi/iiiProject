@@ -4,7 +4,8 @@ import time
 import json
 import requests
 from BeautifulSoup import BeautifulSoup
-import csv
+import os.path
+
 def select_script_text(link):
     res = requests.get(link)
     soup = BeautifulSoup(res.text.encode('utf-8'))
@@ -41,20 +42,35 @@ def isthereanydeal_history_ajaxs(input_file, output_folder):
         for j in range(len(special_time)):
             #if special_time_company[i][j][0] == 'v:null':
             #    continue
+            if special_time[j][:11] == special_time[j-1][:11] and special_time_company[j][i][0] == special_time_company[j-1][i][0]:
+                continue
+
             special_days['company'] = company[i]
             special_days['date'] = special_time[j]
             special_days['price'] = special_time_company[j][i][0].replace('v:', '')
             special_days['price_have_special_before'] = special_time_company[j][i][1].replace('v:', '')
             special_days['price_special'] = special_time_company[j][i][2].replace('v:', '')
             special_day.append(special_days.copy())
+
     change_to_json = json.dumps(special_day, ensure_ascii=False, sort_keys=True)
     #change_to_json = json.dumps(special_day, ensure_ascii=False, sort_keys=True, indent=4)
-
-    with open(output_folder + input_file + '_company.json', 'a') as file_W:
+    with open(output_folder + input_file + '_company.json', 'w') as file_W:
         file_W.write(change_to_json.encode('utf8'))
         
 def main():
-    isthereanydeal_history_ajaxs('findingteddy', 'C:/Users/BigData/Desktop/')
+    #isthereanydeal_history_ajaxs('abysswraithsofeden', 'C:/Users/BigData/Desktop/json/')
+    with open('C:/Users/BigData/Desktop/json/_links_.txt', 'r') as file_R:
+        for link in file_R.readlines():
+            link = link.strip()
+            if os.path.isfile('C:/Users/BigData/Desktop/json/' + link + '_company.txt'):
+                continue   
+            try:
+                isthereanydeal_history_ajaxs(link, 'C:/Users/BigData/Desktop/json/')
+                print link
+            except:
+                print link + '-----'
+                with open('C:/Users/BigData/Desktop/json/_error.txt', 'a') as file_W:
+                    file_W.write(link + '\n')
 
 if __name__ == "__main__":
     main()
