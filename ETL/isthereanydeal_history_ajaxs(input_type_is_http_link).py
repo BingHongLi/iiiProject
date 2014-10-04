@@ -9,15 +9,22 @@ def select_script_text(link):
     res = requests.get(link)
     soup = BeautifulSoup(res.text.encode('utf-8'))
     search_name = soup.findAll('div',{'class' : 'cntBoxTitle'})[1].text.replace('Price History: ', '')
-    search_script_text = soup.find('script', {'type' : 'text/javascript'}).text
-    cols = re.search(r'cols:.*}}],',search_script_text)
-    rows = re.search(r'rows:.*}]}]',search_script_text)
-    return (cols.group(), rows.group(), search_name)
+    try:
+        search_script_text = soup.find('script', {'type' : 'text/javascript'}).text
+    except:
+        return 'error'
+    else:    
+        cols = re.search(r'cols:.*}}],',search_script_text)
+        rows = re.search(r'rows:.*}]}]',search_script_text)
+        return (cols.group(), rows.group(), search_name)
    
 def isthereanydeal_history_ajaxs(input_file, output_folder):
     http_link = 'http://isthereanydeal.com/ajax/game/price?plain=' + input_file
     script_text = select_script_text(http_link)
-
+    if script_text == 'error':
+        with open(output_folder + 'error.txt', 'a') as file_W:
+            file_W.write(http_link + '\n')
+        return
     col = script_text[0]
     row = script_text[1]
     game_name = script_text[2]
@@ -50,12 +57,10 @@ def isthereanydeal_history_ajaxs(input_file, output_folder):
 
     with open(output_folder + input_file + '.json', 'w') as file_W:
         file_W.write(change_to_json.encode('utf8'))
-'''
-example:
 
 def main():
-    isthereanydeal_history_ajaxs('sidmeierscivilizationvmappackscramblednationsmac', 'C:/Users/BigData/Desktop/')
+    isthereanydeal_history_ajaxs('ageofwonders', 'C:/Users/BigData/Desktop/')
 
 if __name__ == "__main__":
     main()
-'''
+
