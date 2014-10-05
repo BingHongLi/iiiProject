@@ -88,7 +88,9 @@ for dirPath, dirNames, AllfileNames in os.walk("E://Dropbox/iiiProject/data/allC
         #print content.find('div',{'id':'game_area_metascore'}).text.strip()
         if content.find('div',{'id':'game_area_metascore'}) is not None:
             score=content.find('div',{'id':'game_area_metascore'}).text.strip()
-            gameProfile[ID]['score']=score
+            score=re.search('\w+',score)    
+            score=score.group(0)
+        gameProfile[ID]['score']=score
         
         #找出系統需求
         '''
@@ -105,8 +107,24 @@ for dirPath, dirNames, AllfileNames in os.walk("E://Dropbox/iiiProject/data/allC
             tempNewRQ=content.findAll('div',{'class':'game_area_sys_req_full'})
             tempSRQ=''
             for i in tempNewRQ:
-            #print i.text.strip().replace('\n','').replace('\t','')
-                tempSRQ+=i.text.strip().replace('\n','').replace('\t','')
+                #print i.text.strip().replace('\n','').replace('\t','')
+                tempSRQ+=i.text.strip().replace('\n','').replace('\t','').replace('\r','')
+            if tempSRQ =='':
+                if content.findAll('div',{'class':'game_area_sys_req_leftCol'}) is not None:
+                    tempNewRQ=content.findAll('div',{'class':'game_area_sys_req_leftCol'})
+                    tempSRQ=''
+                    for i in tempNewRQ:
+                        #print i.text.strip().replace('\n','').replace('\t','')
+                        #print tempSRQ
+                        tempSRQ+=i.text.strip().replace('\n','').replace('\t','').replace('\r','')    
+                elif tempSRQ=='':
+                    tempNewRQ=content.findAll('div',{'class':'sysreq_contents'})
+                    tempSRQ=''
+                    for i in tempNewRQ:
+                        #print i.text.strip().replace('\n','').replace('\t','')
+                        #print tempSRQ
+                        tempSRQ+=i.text.strip().replace('\n','').replace('\t','').replace('\r','')   
+        
         gameProfile[ID]['systemRequire']=tempSRQ
         
         gameProfileJson=json.dumps(gameProfile[ID], indent = 4)
