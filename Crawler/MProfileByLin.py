@@ -72,7 +72,6 @@ if __name__=='__main__':
 #coding
 from bs4 import BeautifulSoup
 import time
-import re
 
 def MetacriticCrawler(inputUrl):         #定義輸入method，輸出HTML
     if __name__=='__main__':        
@@ -80,20 +79,21 @@ def MetacriticCrawler(inputUrl):         #定義輸入method，輸出HTML
         mGameName = inputUrl.split('/')[5]                                                                                                    #找出遊戲名稱
         print mGameName
         
-        splider=BrowserBase()                                                                                                              #呼叫偽裝機器人                
+        splider=BrowserBase()                                                                                                             #呼叫偽裝機器人                
         soup = BeautifulSoup(splider.openurl(inputUrl+'/details').read())                                           #抓下HTML
          
+        
         
         print ('----------------------------------------------------------------------------------introduce--------------------------------------------------------------------------------------')
         #print soup.findAll('div',{"class":"summary_detail product_summary"})    
         if soup.findAll('div',{"class":"summary_detail product_summary"}):
             introduce=soup.findAll('div',{"class":"summary_detail product_summary"})                         #introduce  
             for i in introduce:
-                print ' '.join(i.text.split())
+                print (' '.join(i.text.split())).split(':')[1]
         else:
             introduce=soup.findAll('li',{"class":"summary_detail product_summary"})                         #introduce  
             for i in introduce:
-                print ' '.join(i.text.split())
+                print ' '.join(i.text.split(':'))
         
         print ('---------------------------------------------------------------------------------releaseDate------------------------------------------------------------------------------------')
         
@@ -107,27 +107,54 @@ def MetacriticCrawler(inputUrl):         #定義輸入method，輸出HTML
         userscore = soup.find('div',{"class":"userscore_wrap feature_userscore"}).text.split()[2]                               #userscore
         print (userscore)
         
-        print ('---------------------------------------------------------------------------developer & gameTag-----------------------------------------------------------------------------')    
-        developer = soup.find('table',{"cellspacing":"0"})                                                                                       #developer & gameTag
-               
-        for tag in developer.findAll('tr'):                                                                                                      #逐一取出表格內容
-            information = ''.join(tag.text.split())
-            print ''.join(information.split(':')[0])
-            print ''.join(information.split(':')[1])
+
+        '''
+        f =open('MProfile.txt','a') 
+        text ="text"
+        f.write(text+"\n")
+        f.close()
+        '''
         
+        
+        
+        print ('---------------------------------------------------------------------------developer & gameTag-----------------------------------------------------------------------------')    
+        table = soup.find('table',{"cellspacing":"0"})                                                                                       #developer & gameTag
+    
+        gameTag=list()
+        developer=list()
+        for tag in table.findAll('tr'):                                                                                                      #逐一取出表格內容
+            information = ''.join(tag.text.split())
+            if information.split(':')[0] == 'Genre(s)' or information.split(':')[0] == 'ESRBDescriptors':
+                gameTag.append(information.split(':')[1])
+            if information.split(':')[0] == 'Developer':
+                developer.append(information.split(':')[1])
+        print gameTag[]
+        print developer
+        
+        '''
+        f =open('MGameTag.txt','a') 
+        text ="text"
+        f.write(text+"\n")
+        f.close()
+        '''
         print ('==================================================/critic-reviews-===========================================-')    
         #time.sleep()
         soup2 = BeautifulSoup(splider.openurl(inputUrl+'/critic-reviews').read())                                         #gameReview
         content = soup2.find('div',{"class":"body product_reviews"})
         
         i=0
-        # help from 品中
+        # help from 品中 取三標籤
         def match_class(target):                                                        
             def do_match(tag):                                                          
                 classes = tag.get('class', [])                                          
                 return all(c in classes for c in target)                                
             return do_match  
-
+        '''
+        f =open('MGameReview.txt','a') 
+        text ="text"
+        f.write(text+"\n")
+        f.close()
+        '''
         if content.find('div',{"class":"msg msg_no_reviews"}):
             print None
         else:    
@@ -138,43 +165,28 @@ def MetacriticCrawler(inputUrl):         #定義輸入method，輸出HTML
                     print content.findAll('div',{'class':'source'})[i].text
                 if content.findAll('div',{'class':'review_body'}):
                     print ' '.join(content.findAll('div',{'class':'review_body'})[i].text.split())
-                
-               
-                if content.findAll(match_class(["metascore_w", "medium", "game"])):
+                if content.findAll(match_class(["metascore_w", "medium", "game"])):                                                                  #取三個分數標籤
                     print content.findAll(match_class(["metascore_w", "medium", "game"]))[i].text
-                
-                
-                #if content.findAll('div',{'class':re.compile("metascore_w medium game")}):
-#                    print content.findAll('div',{'class':re.compile("metascore_w medium game")})[i].text
-                '''
-                if content.findAll('div',{'class':'metascore_w medium game mixed indiv}):
-                    print content.findAll('div',{'class':'metascore_w medium game mixed indiv'})[].text
-                if content.findAll('div',{'class':'metascore_w medium game negative indiv'}):
-                    print content.findAll('div',{'class':'metascore_w medium game negative indiv'}).text
-                '''  
-                    
                 i+=1
+                
                 if content.findAll('div',{"class":"review_body"}).__len__() == i:
                     break
-        
-          
-                
 #MetacriticCrawler method End
                 
     
-#a= 'http://www.metacritic.com/game/pc/the-sims-3'
+#a= 'http://www.metacritic.com/game/pc/1701-ad'
 #MetacriticCrawler(a) 
-                
+
+
     
 
 f =open('MetaCritic_link_.txt','r')                         #open MetaCritic_link_.txt
-
-for i in range(0,f.readlines().__len__()):
-   link =index[i].split('|||||')[0].split('?full_summary=1')[0]
-   MetacriticCrawler(link)
-    
-f.close
-
+index = f.readlines()
+#print index.__len__()
+for i in range(0,index.__len__()):
+    link =index[i].split('|||||')[0].split('?full_summary=1')[0]
+    MetacriticCrawler(link)    
+f.close()
 
 
 
