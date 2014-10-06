@@ -1,7 +1,4 @@
- #-*- coding: utf-8 -*-
 import requests
-from bs4 import BeautifulSoup
-
 #這篇程式碼來自http://www.yihaomen.com/article/python/210.htm
 #coding:utf-8
 '''
@@ -63,61 +60,100 @@ class BrowserBase(object):
             raise Exception
         else:
             return res
-        
+'''        
+# use class
+if __name__=='__main__':
+    splider=BrowserBase()
+    splider.openurl('http://www.metacritic.com/browse/games/title/pc')    #取得網站資料
+'''
 
 
-#撰寫由此開始
+
+#coding
+from bs4 import BeautifulSoup
+import time
+
+def MetacriticCrawler(inputUrl):         #定義輸入method，輸出HTML
+    if __name__=='__main__':        
+        
+        mGameName = inputUrl.split('/')[5]                                                                         #找出遊戲名稱
+        print mGameName
+        
+        splider=BrowserBase()                                                                                      #呼叫偽裝機器人                
+        soup = BeautifulSoup(splider.openurl(inputUrl+'/details').read())                                          #抓下HTML
+         
+        print ('----------------------------------------------------------------------------------introduce--------------------------------------------------------------------------------------')
+        introduce=soup.findAll('div',{"class":"summary_detail product_summary"})                                   #introduce  
+        
+        for i in introduce:
+            print ' '.join(i.text.split())
+        
+        print ('---------------------------------------------------------------------------------releaseDate------------------------------------------------------------------------------------')
+        
+        print ''.join(soup.findAll('span',{"class":"data"})[1].text.split())                                        #releaseDate
+        print ('----------------------------------------------------------------------------------metascore&userscore-------------------------------------------------------------------')    
+        
+        metascore = soup.find('div',{"class":"metascore_wrap feature_metascore"}).text.split()[1]                   #metascore
+        print (metascore)
+        
+        
+        userscore = soup.find('div',{"class":"userscore_wrap feature_userscore"}).text.split()[2]                   #userscore
+        print (userscore)
+        
+        print ('---------------------------------------------------------------------------developer & gameTag-----------------------------------------------------------------------------')    
+        developer = soup.find('table',{"cellspacing":"0"})                                                          #developer & gameTag
+               
+        for tag in developer.findAll('tr'):                                                                         #逐一取出表格內容
+            information = ''.join(tag.text.split())
+            print ''.join(information.split(':')[0])
+            print ''.join(information.split(':')[1])
+        
+        print ('==================================================/critic-reviews-===========================================-')    
+        time.sleep(1)
+        soup2 = BeautifulSoup(splider.openurl(inputUrl+'/critic-reviews').read())                                   #gameReview
+        content = soup2.find('div',{"class":"body product_reviews"})
+        
+        i=0
+        j = content.find('div',{"class":"msg msg_no_reviews"})
+                 
+        while j is None:                                                                                            #逐一取出內容
+            #if content.findAll('div',{"class":"date"})[i] is True:
+            print content.findAll('div',{"class":"date"})[i].text
+            #if content.findAll('div',{'class':'source'})[i] is True:
+            print content.findAll('div',{'class':'source'})[i].text
+            #if content.findAll('div',{'class':'review_body'})[i] is True:
+            print ' '.join(content.findAll('div',{'class':'review_body'})[i].text.split())
+            i+=1
+            if content.findAll('div',{"class":"review_body"}).__len__() == i:
+                break
+                
+#MetacriticCrawler method End
+                
+'''    
+a= 'http://www.metacritic.com/game/pc/the-sims-3?full_summary=1'
+MetacriticCrawler(a) 
+'''
 
 
-＃取名字
-a= 'http://www.metacritic.com/game/pc/007-nightfire/details'
+f =open('MetaCritic_link_.txt','r')                         #open MetaCritic_link_.txt
 
-print a.split('/')[5]
+for i in range(0,f.readlines().__len__()):
+   link =index[i].split('|||||')[0]
+   MetacriticCrawler(link)
+    
+f.close
 
-＃內容
 
-def MetacriticCrawler(inputUrl):         #定義輸入method，輸出text
-    if __name__=='__main__':
-        splider=BrowserBase()
-        soup = BeautifulSoup(splider.openurl(inputUrl+'/details').read())
-        
-        print ('------------------------------------------------------------------------------introduce--------------------------------------------------------------------------------------')
-        introduce=soup.findAll('span',{"class":"data"})[2:]                       #introduce
-        for ii in introduce:
-            print ii.text
-        
-        print ('-----------------------------------------------------------------------------releaseDate------------------------------------------------------------------------------------')
-        
-        releaseDate = soup.findAll('span',{"class":"data"})[1:-1]   #releaseDate
-        for jj in releaseDate:
-            print jj.text
-        
-        print ('----------------------------------------------------------------------------------metascore-------------------------------------------------------------------------------------')    
-        
-        print ('metascore,'+soup.find('div',{"class":"metascore_w large game mixed"}).text)  #metascore
-        
-        print ('user score,'+soup.find('div',{"class":"metascore_w user large game mixed"}).text)   #user score
-        
-        print ('------------------------------------------------------------------------developer & gameTag-----------------------------------------------------------------------------')    
-        developer = soup.find('table',{"cellspacing":"0"})           #developer & gameTag
-       
-        
-        for tag in developer.findAll('tr'):
-            if ( tag.text != '\t'):
-                print tag.text
-        
-        #tr = developer.find('tr')
-        #print tr
-        
-        
-        print ('------------------------------------------------------------------------------------------gameReview------------------------------------------------------------------------')    
-        
-        soup2 = BeautifulSoup(splider.openurl(inputUrl+'/critic-reviews').read()) #gameReview
-        print soup2.find('div',{"class":"body product_reviews"})
-       
 
-#Call MetacriticCrawler method
-MetacriticCrawler('http://www.metacritic.com/game/pc/007-nightfire') 
+
+
+
+
+
+
+
+
+
 
 
 
