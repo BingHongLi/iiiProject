@@ -2,24 +2,40 @@ __author__ = 'bigdata'
 # -*- coding: utf-8 -*-
 from bs4 import BeautifulSoup
 #import time
-#import sys
+import sys
 
-#reload(sys)
-#sys.setdefaultencoding('utf8') #change encode
+reload(sys)
+sys.setdefaultencoding('utf8') #change encode
 
 
 def MetacriticCrawler(inputUrl):         #定義輸入method，輸出HTML
     if __name__=='__main__':
 
-        mGameName = inputUrl.split('/')[5]                                                                                                    #找出遊戲名稱
-        print mGameName
-        path ="/media/bigdata/0E7204AF72049D99/Orz/Dropbox/資策會專題/data/Metacritic/details/"+mGameName+".txt"
+        mGameName = inputUrl.split('.')[0]                                                                                                    #找出遊戲名稱
+        #print mGameName
+        path ="/home/bigdata/IdeaProjects/Metacritic/details/"+inputUrl
+
         f =open(path,"r")
         #b= f.read().encode('utf8')
         b= f.read()
 
         soup = BeautifulSoup(b)                                        #抓下HTML
         f.close()
+
+
+        othername =''
+        f =open('MetaCritic_link_.txt','r')                         #open MetaCritic_link_.txt
+        index = f.readlines()
+        #print index.__len__()
+        for i in range(0,index.__len__()):
+
+            link =index[i].split('|||||')[0].split('?full_summary=1')[0]
+            if link.split('/')[5] ==mGameName:
+                othername= index[i].split('|||||')[1].split()[0]
+                break
+        f.close()
+        print othername
+
 
         MProfile={'MGameName':mGameName,'SteamGamename':othername,'Introduce':'','ReleaseDate':'','MetaScore':'','UserScore':'','Developer':''}
 
@@ -41,14 +57,14 @@ def MetacriticCrawler(inputUrl):         #定義輸入method，輸出HTML
         MProfile['ReleaseDate'] = point                                                                                     #releaseDate
         #print ('----------------------------------------------------------------------------------metascore&userscore-------------------------------------------------------------------')
 
-        metascore = soup.find('div',{"class":"metascore_wrap feature_metascore"}).text.split()[1]               #metascore
-        userscore = soup.find('div',{"class":"userscore_wrap feature_userscore"}).text.split()[2]                               #userscore
+        metascore = soup.find('div',{"class":"metascore_wrap feature_metascore"}).text.encode('utf-8').split()[1]               #metascore
+        userscore = soup.find('div',{"class":"userscore_wrap feature_userscore"}).text.encode('utf-8').split()[2]                               #userscore
         if metascore != 'tbd' and userscore != 'tbd':
             MProfile['MetaScore'] =metascore
             MProfile['UserScore'] =userscore
 
 
-        print ('---------------------------------------------------------------------------developer & gameTag-----------------------------------------------------------------------------')
+        #print ('---------------------------------------------------------------------------developer & gameTag-----------------------------------------------------------------------------')
         MGameTag={'MGameName':mGameName,'SteamGamename':othername,'GameTag':''}
 
 
@@ -58,7 +74,7 @@ def MetacriticCrawler(inputUrl):         #定義輸入method，輸出HTML
             gameTag=list()
             developer=list()
             for tag in table.findAll('tr'):                                                                                                      #逐一取出表格內容
-                information = ''.join(tag.text.split())
+                information = ''.join(tag.text.encode('utf-8').split())
                 if information.split(':')[0] == 'Genre(s)' or information.split(':')[0] == 'ESRBDescriptors':
                     gameTag.append(information.split(':')[1])
                 if information.split(':')[0] == 'Developer':
@@ -67,8 +83,8 @@ def MetacriticCrawler(inputUrl):         #定義輸入method，輸出HTML
                 MProfile['Developer']=(developer[i])
             for i in range(0,gameTag.__len__()):
                 MGameTag['GameTag'] = gameTag[i]
-        print '++++'
-        print MProfile['Introduce']
+        #print '++++'
+        #print MProfile['Introduce']
         '''
         f =open('MProfile.txt','a')
         f.write('\"'+MProfile['MGameName']+'\",\"'+MProfile['SteamGamename']+'\",\"'+MProfile['Introduce']+'\",\"')
@@ -96,7 +112,7 @@ def MetacriticCrawler(inputUrl):         #定義輸入method，輸出HTML
 
         #print ('==================================================/critic-reviews-===========================================-')
         #time.sleep()
-        path ="/media/bigdata/0E7204AF72049D99/Orz/Dropbox/資策會專題/data/Metacritic/critic-reviews/"+mGameName+".txt"
+        path ="/home/bigdata/IdeaProjects/Metacritic/critic-reviews/"+inputUrl
         f =open(path,"r")
         c= f.read()#.encode('utf8')
         soup2 = BeautifulSoup(c)                                        #抓下HTML
@@ -117,8 +133,9 @@ def MetacriticCrawler(inputUrl):         #定義輸入method，輸出HTML
         f =open('MGameReview.txt','a')
         while content.find('div',{"class":"msg msg_no_reviews"}) is None:                                                                                                            #逐一取出內容
             if content.findAll('div',{"class":"date"}):
-                Date = content.findAll('div',{"class":"date"})[i].text.encode('utf-8')
-                MGameReview['Date'] =Date
+                #print content.findAll('div',{"class":"date"})[0].text.encode('utf-8').split()
+                Date = content.findAll('div',{"class":"date"})[0].text.encode('utf-8').split()
+                MGameReview['Date'] =' '.join(Date)
                 #print Date
             if content.findAll('div',{'class':'source'}):
                 Writer = content.findAll('div',{'class':'source'})[i].text.encode('utf-8').split()[0]
@@ -154,7 +171,7 @@ def MetacriticCrawler(inputUrl):         #定義輸入method，輸出HTML
 
 
 #a= 'http://www.metacritic.com/game/pc/1701-ad'
-#MetacriticCrawler(a,'007')
+#MetacriticCrawler('king-arthur-the-role-playing-wargame.txt')
 
 '''
 f =open('MetaCritic_link_.txt','r')                         #open MetaCritic_link_.txt
@@ -166,10 +183,14 @@ for i in range(0,index.__len__()):
     MetacriticCrawler(link,othername)
 f.close()
 '''
+
 import os
-for AllfileNames in os.walk("/media/bigdata/0E7204AF72049D99/Orz/Dropbox/資策會專題/data/Metacritic/details/"):
-    for fileName in AllfileNames:
+for dirPath, dirNames, fileNames in os.walk("/home/bigdata/IdeaProjects/Metacritic/details/"):
+    for fileName in fileNames:
+        print fileName
         MetacriticCrawler(fileName)
+
+
 
 
 
