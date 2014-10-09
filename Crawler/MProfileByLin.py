@@ -112,11 +112,11 @@ def MetacriticCrawler(inputUrl):         #定義輸入method，輸出HTML
         c= f.read()#.encode('utf8')
         soup2 = BeautifulSoup(c)                                        #抓下HTML
         f.close()                                                                                                             #gameReview
-        content = soup2.find('div',{"class":"body product_reviews"})
+
 
 
         MGameReview={'MGameName':mGameName,'SteamGamename':othername,'GameReview':'','Date':'','Score':'','Writer':''}
-        i=0
+
         # help from 品中 取三標籤
         def match_class(target):
             def do_match(tag):
@@ -124,12 +124,13 @@ def MetacriticCrawler(inputUrl):         #定義輸入method，輸出HTML
                 return all(c in classes for c in target)
             return do_match
 
-        i=0
+        '''
+        content = soup2.find('div',{"class":"body product_reviews"})
         f =open('MGameReview3.txt','a')
         while content.find('div',{"class":"msg msg_no_reviews"}) is None:                                                                                                            #逐一取出內容
-            if content.findAll('div',{"class":"date"}):
+            if content.findAll('div',{"class":"date"})[i] is True:
                 #print content.findAll('div',{"class":"date"})[0].text.encode('utf-8').split()
-                Date = content.findAll('div',{"class":"date"})[0].text.encode('utf-8').split()
+                Date = content.findAll('div',{"class":"date"})[i].text.encode('utf-8').split()
                 MGameReview['Date'] =' '.join(Date)
                 #print Date
             if content.findAll('div',{'class':'source'}):
@@ -158,12 +159,53 @@ def MetacriticCrawler(inputUrl):         #定義輸入method，輸出HTML
             if content.findAll('div',{"class":"review_body"}).__len__() == i:
                 f.close()
                 break
+        '''
+
+        i=0
+        f =open('MGameReview3.txt','a')
+        if soup2.find('div',{"class":"body product_reviews"}).find('div',{"class":"msg msg_no_reviews"}) is None:
+            content =soup2.findAll('div',{"class":"review_btm review_btm_r"})
+            while soup2.find('div',{"class":"body product_reviews"}).find('div',{"class":"msg msg_no_reviews"}) is None:                                                                                                            #逐一取出內容
+                if content[i].find('div',{"class":"date"}):
+                    #print content[i].find('div',{"class":"date"}).text.encode('utf-8').split()
+                    Date = content[i].find('div',{"class":"date"}).text.encode('utf-8').split()
+                    MGameReview['Date'] =' '.join(Date)
+                    #print Date
+                if content[i].find('div',{'class':'source'}):
+                    Writer = ' '.join(content[i].find('div',{'class':'source'}).text.encode('utf-8').split())
+                    MGameReview['Writer'] = Writer
+                #print Writer
+                if content[i].find('div',{'class':'review_body'}):
+                    GameReview = ' '.join(content[i].find('div',{'class':'review_body'}).text.encode('utf-8').split()).replace('â','-').replace('â','\'')
+                    MGameReview['GameReview'] =GameReview
+                    #print GameReview
+
+                if content[i].find(match_class(["metascore_w", "medium", "game"])):                                                                  #取三個分數標籤
+                    Score = content[i].find(match_class(["metascore_w", "medium", "game"])).text.encode('utf-8').split()[0]
+                    MGameReview['Score'] =Score
+                #print Score
+            #print MGameReview
+
+
+
+                f.write('\"'+MGameReview['MGameName']+'\"|\"'+MGameReview['SteamGamename']+'\"|\"'+MGameReview['Writer']+'\"|')
+                f.write('\"'+MGameReview['Date']+'\"|\"'+MGameReview['Score']+'\"|\"'+MGameReview['GameReview']+'\"')
+                f.write("\n")
+                MGameReview={'MGameName':mGameName,'SteamGamename':othername,'GameReview':'','Date':'','Score':'','Writer':''}
+
+                i+=1
+
+                if soup2.find('div',{"class":"body product_reviews"}).findAll('div',{"class":"review_body"}).__len__() == i:
+                    f.close()
+                    break
+
+
 
 #MetacriticCrawler method End
 
 
 #a= 'http://www.metacritic.com/game/pc/1701-ad'
-#MetacriticCrawler('warhammer-40000-storm-of-vengeance.txt')
+#MetacriticCrawler('king-arthur-the-role-playing-wargame.txt')
 
 
 
@@ -172,6 +214,7 @@ for dirPath, dirNames, fileNames in os.walk("/home/bigdata/IdeaProjects/Metacrit
     for fileName in fileNames:
         print fileName
         MetacriticCrawler(fileName)
+
 
 
 
