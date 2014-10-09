@@ -44,12 +44,12 @@ def MetacriticCrawler(inputUrl):         #定義輸入method，輸出HTML
         if soup.findAll('div',{"class":"summary_detail product_summary"}):
             introduce=soup.findAll('div',{"class":"summary_detail product_summary"})                         #introduce
             for i in introduce:
-                point = (' '.join(i.text.encode('utf-8').split())).split(':')[1].replace('â','-')
+                point = (' '.join(i.text.encode('utf-8').split())).split(':')[1].replace('â','-').replace('â','\'')
                 MProfile['Introduce'] = point
         else:
-            introduce=soup.findAll('li',{"class":"summary_detail product_summary"})                         #introduce
+            introduce=soup.findAll('li',{"class":"summary_detail product_summary"})         #introduce
             for i in introduce:
-                point = ' '.join(i.text.split(':'))
+                point = ' '.join(i.text.split(':')).replace('â','-').replace('â','\'')
                 MProfile['Introduce'] = point
 
         #print ('---------------------------------------------------------------------------------releaseDate------------------------------------------------------------------------------------')
@@ -85,16 +85,11 @@ def MetacriticCrawler(inputUrl):         #定義輸入method，輸出HTML
                 MGameTag['GameTag'] = gameTag[i]
         #print '++++'
         #print MProfile['Introduce']
-        '''
-        f =open('MProfile.txt','a')
-        f.write('\"'+MProfile['MGameName']+'\",\"'+MProfile['SteamGamename']+'\",\"'+MProfile['Introduce']+'\",\"')
-        f.write('\"'+MProfile['ReleaseDate']+'\",\"'+MProfile['MetaScore']+'\",\"'+MProfile['UserScore']+'\",\"'+MProfile['Developer']+'\"')
-        f.write("\n")
-        f.close()
-        '''
-        f =open('MProfile.txt','a')
-        f.write('\"'+MProfile['MGameName']+'\",\"'+MProfile['SteamGamename']+'\",\"'+MProfile['Developer']+'\",\"')
-        f.write('\"'+MProfile['ReleaseDate']+'\",\"'+MProfile['MetaScore']+'\",\"'+MProfile['UserScore']+'\",\"'+MProfile['Introduce']+'\"')
+
+
+        f =open('MProfile3.txt','a')
+        f.write('\"'+MProfile['MGameName']+'\"|\"'+MProfile['SteamGamename']+'\"|\"'+MProfile['Developer']+'\"|')
+        f.write('\"'+MProfile['ReleaseDate']+'\"|\"'+MProfile['MetaScore']+'\"|\"'+MProfile['UserScore']+'\"|\"'+MProfile['Introduce']+'\"')
         f.write("\n")
         f.close()
 
@@ -103,8 +98,8 @@ def MetacriticCrawler(inputUrl):         #定義輸入method，輸出HTML
 
         #print gameTag
 
-        f =open('MGameTag.txt','a')
-        f.write('\"'+MGameTag['MGameName']+'\",\"'+MGameTag['SteamGamename']+'\",\"'+ MGameTag['GameTag']+'\"')
+        f =open('MGameTag3.txt','a')
+        f.write('\"'+MGameTag['MGameName']+'\"|\"'+MGameTag['SteamGamename']+'\"|\"'+ MGameTag['GameTag']+'\"')
         f.write("\n")
         f.close()
 
@@ -130,7 +125,7 @@ def MetacriticCrawler(inputUrl):         #定義輸入method，輸出HTML
             return do_match
 
         i=0
-        f =open('MGameReview.txt','a')
+        f =open('MGameReview3.txt','a')
         while content.find('div',{"class":"msg msg_no_reviews"}) is None:                                                                                                            #逐一取出內容
             if content.findAll('div',{"class":"date"}):
                 #print content.findAll('div',{"class":"date"})[0].text.encode('utf-8').split()
@@ -142,7 +137,7 @@ def MetacriticCrawler(inputUrl):         #定義輸入method，輸出HTML
                 MGameReview['Writer'] = Writer
                 #print Writer
             if content.findAll('div',{'class':'review_body'}):
-                GameReview = ' '.join(content.findAll('div',{'class':'review_body'})[i].text.encode('utf-8').split())
+                GameReview = ' '.join(content.findAll('div',{'class':'review_body'})[i].text.encode('utf-8').split()).replace('â','-').replace('â','\'')
                 MGameReview['GameReview'] =GameReview
                 #print GameReview
 
@@ -153,13 +148,9 @@ def MetacriticCrawler(inputUrl):         #定義輸入method，輸出HTML
             #print MGameReview
 
 
-            '''
-            f.write('\"'+MGameReview['MGameName']+'\",\"'+MGameReview['SteamGamename']+'\",\"'+MGameReview['GameReview']+'\",')
-            f.write('\"'+MGameReview['Date']+'\",\"'+MGameReview['Score']+'\",\"'+MGameReview['Writer']+'\"')
-            f.write("\n")
-            '''
-            f.write('\"'+MGameReview['MGameName']+'\",\"'+MGameReview['SteamGamename']+'\",\"'+MGameReview['Writer']+'\",')
-            f.write('\"'+MGameReview['Date']+'\",\"'+MGameReview['Score']+'\",\"'+MGameReview['GameReview']+'\"')
+
+            f.write('\"'+MGameReview['MGameName']+'\"|\"'+MGameReview['SteamGamename']+'\"|\"'+MGameReview['Writer']+'\"|')
+            f.write('\"'+MGameReview['Date']+'\"|\"'+MGameReview['Score']+'\"|\"'+MGameReview['GameReview']+'\"')
             f.write("\n")
 
             i+=1
@@ -167,29 +158,20 @@ def MetacriticCrawler(inputUrl):         #定義輸入method，輸出HTML
             if content.findAll('div',{"class":"review_body"}).__len__() == i:
                 f.close()
                 break
+
 #MetacriticCrawler method End
 
 
 #a= 'http://www.metacritic.com/game/pc/1701-ad'
-#MetacriticCrawler('king-arthur-the-role-playing-wargame.txt')
+#MetacriticCrawler('warhammer-40000-storm-of-vengeance.txt')
 
-'''
-f =open('MetaCritic_link_.txt','r')                         #open MetaCritic_link_.txt
-index = f.readlines()
-#print index.__len__()
-for i in range(0,index.__len__()):
-    link =index[i].split('|||||')[0].split('?full_summary=1')[0]
-    othername = index[i].split('|||||')[1].split()[0]
-    MetacriticCrawler(link,othername)
-f.close()
-'''
+
 
 import os
 for dirPath, dirNames, fileNames in os.walk("/home/bigdata/IdeaProjects/Metacritic/details/"):
     for fileName in fileNames:
         print fileName
         MetacriticCrawler(fileName)
-
 
 
 
