@@ -100,4 +100,40 @@ plot.forecast(rainSeriesForeasts2)
 # 計算倫敦降雨量數據的樣本內預測誤差延遲1-20階的相關圖
 acf(rainSeriesForeasts2$residuals,lag.max=20)
 
-# 讀至p.24頁
+Box.test(rainSeriesForeasts2$residuals,lag=20,type="Ljung-Box")
+# p-value為0.6，知不足以證明樣本內預測誤差在1-20階是非零自相關的
+
+# 為了確定模型不可繼續優化，需要用其他方法來檢驗預測誤差是常態分配，且均值為0，平方差不變
+# 為了驗證預測誤差是平方差不變的，可畫一個樣本內預測誤差圖
+plot.ts(rainSeriesForeasts2$residuals)
+
+# 檢驗預測誤差是否為常態分配，可畫出預測誤差的直方圖，並覆蓋上均值為0，標準平方差的常態分佈曲線圖到預測誤差上
+# 為了實現此想法，需去定義R中的plotForecastErrors()
+plotForecastErrors <- function(forecasterrors){
+  ## 以紅色直方圖表示預測錯誤
+  # 圖點大小
+  mybinsize <- IQR(forecasterrors)/4
+  # 標準差
+  mysd <- sd(forecasterrors)
+  # 最小值 
+  mymin <- min(forecasterrors) + mysd*5
+  # 最大值
+  mymax <- max(forecasterrors) + mysd*3
+  # 繪製圖點
+  mybins <- seq(mymin, mymax, mybinsize)
+  # 直方圖 
+  # help(hist) 
+  hist(forecasterrors, col="red", freq=FALSE, breaks=mybins)
+  # freq=FALSE ensures the area under the histogram = 1
+  # generate normally distributed data with mean 0 and standard deviation mysd
+  
+  mynorm <- rnorm(10000, mean=0, sd=mysd)
+  myhist <- hist(mynorm, plot=FALSE, breaks=mybins)
+  
+  # plot the normal curve as a blue line on top of the histogram of forecast errors:
+  points(myhist$mids, myhist$density, type="l", col="blue", lwd=2)
+}
+
+### 霍爾特指數平滑法
+# 若時間序列可被描述為一個增長或降低趨勢、且沒有季節性的相加模型，可使用霍爾特指數平滑法，進行短期預測
+# 
