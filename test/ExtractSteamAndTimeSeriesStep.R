@@ -12,6 +12,8 @@ findEA <- function(x){
   allEA
 }
 
+
+#找出EA每一個遊戲的價格資料，並且rbind成一個data.frame
 findEAPrice <- function(x){
   allEAPrice <- data.frame()
   for (i in 1:nrow(x)){
