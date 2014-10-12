@@ -13,8 +13,8 @@ shinyUI(fluidPage(
                selectInput("selectDeveloper","Select Developer", choices=levels(allDevelopName[,1]))
              ),
              tabPanel(  
-               selectInput("selectGames","Select Developer", choices=c("app_102820","app_102822","app_47790"))
-             )             
+               selectInput("selectGames","Select Game", choices=c("app_102820","app_102822","app_47790"))
+             )
            )
     ),
     mainPanel(

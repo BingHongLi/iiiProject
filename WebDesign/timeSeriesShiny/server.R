@@ -1,45 +1,50 @@
+
+### Loading slow
 getPrice <- read.csv('./data/SPrice.csv')
 getContent <- read.csv('./data/SProfile.csv',stringsAsFactors=F)
-# findDevelpoer
-findDeveloperProfile <- function(x,y){
-  allEA <- data.frame()
+
+# findDevelpoer  x is SProfile, y is the developer we want to search. 
+# and output is a data.frame, there have all game about the developer we want to search
+# slow row search !!!
+findDeveloperGameList <- function(x,y){
+  allDeveloperGameList <- data.frame()
   for (i in 1:nrow(x)){
     if(x[i,5]==y){
-      allDeveloperProfile <- rbind(allEA,x[i,])
+      allDeveloperGameList <- rbind(allDeveloperGameList,x[i,])
     }
   }  
-  allDeveloperProfile
+  allDeveloperGameList
 }
 
-#找出遊戲價格
-findDeveloperGamePrice <- function(x){
-  allEAPrice <- data.frame()
+# accroding to the developer's game list, we find all game price about the developer
+# x is all gamePrice list
+# do nrow(x) slow!!!
+findDeveloperGamePrice <- function(x,y){
+  allDeveloperGamePrice <- data.frame()
   for (i in 1:nrow(x)){
-    if (x[i,1] %in% getEA[,1] ){
-      allDeveloperGamePrice <- rbind(allEAPrice,x[i,])
+    if (x[i,1] %in% y[,1] ){
+      allDeveloperGamePrice <- rbind(allDeveloperGamePrice,x[i,])
     }
   }
   allDeveloperGamePrice
 }
 
 
-#此處x放要畫的遊戲價格曲線
-drawCurve<- function(x){
-  seperatePrice <- getEAPrice[which(getEAPrice[,1]==x),]
-  seperatePriceTimeSeries <- ts(seperatePrice[,3])
+
+# draw a timeseries curve,x is gameID, y is a gamePriceList 
+drawCurve<- function(x,y){
+  #seperatePrice <- y[which(y[,1]==x),]
+  seperatePriceTimeSeries <- ts(y[which(y[,1]==x),][,3])
   plot.ts(seperatePriceTimeSeries,col="red",)
 }
 
 shinyServer(function(input,output){
   
-    
+  #findDeveloperGamePrice(getPrice,findDeveloperGameList(getContent,input$selectDeveloper))
+  #findDeveloperGameList(getContent,input$selectDeveloper)  
+  #nameList=developerGameList[,3]
   
-  output$plotTS <- renderPlot(drawCurve(input$selectDeveloper))
-  
-
-  
-
-  
+  output$plotTS <- renderPlot(drawCurve(input$selectGames,findDeveloperGamePrice(getPrice,findDeveloperGameList(getContent,input$selectDeveloper))))  
   
   
 })
