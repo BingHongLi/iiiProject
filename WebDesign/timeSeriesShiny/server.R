@@ -1,50 +1,47 @@
-
+library(shiny)
 ### Loading slow
-getPrice <- read.csv('./data/SPrice.csv')
-getContent <- read.csv('./data/SProfile.csv',stringsAsFactors=F)
+ALLPRICE <- read.csv('./data/SPrice.csv')
+ALLPROFILE <- read.csv('./data/SProfile.csv')
 
-# findDevelpoer  x is SProfile, y is the developer we want to search. 
-# and output is a data.frame, there have all game about the developer we want to search
-# slow row search !!!
-findDeveloperGameList <- function(x,y){
-  allDeveloperGameList <- data.frame()
-  for (i in 1:nrow(x)){
-    if(x[i,5]==y){
-      allDeveloperGameList <- rbind(allDeveloperGameList,x[i,])
-    }
-  }  
-  allDeveloperGameList
+### find Developer's game
+
+FINDDEVELOPERPROFILE <- function(developerName,queryFile=ALLPROFILE){
+  developerFile <- queryFile[queryFile[,5]==developerName,]
+  developerFile
 }
 
-# accroding to the developer's game list, we find all game price about the developer
-# x is all gamePrice list
-# do nrow(x) slow!!!
-findDeveloperGamePrice <- function(x,y){
-  allDeveloperGamePrice <- data.frame()
-  for (i in 1:nrow(x)){
-    if (x[i,1] %in% y[,1] ){
-      allDeveloperGamePrice <- rbind(allDeveloperGamePrice,x[i,])
-    }
-  }
-  allDeveloperGamePrice
+##fine game price history
+FINDDEVELOPERGAMEPRICELIST <- function(gameName,queryFile,queryPrice=ALLPRICE){
+  gameID <- as.character(queryFile[which(queryFile[,2]==gameName),1])
+  priceHistory <- queryPrice[which(queryPrice[,1]==gameID),3]
+  priceHistory
 }
 
-
-
-# draw a timeseries curve,x is gameID, y is a gamePriceList 
-drawCurve<- function(x,y){
-  #seperatePrice <- y[which(y[,1]==x),]
-  seperatePriceTimeSeries <- ts(y[which(y[,1]==x),][,3])
-  plot.ts(seperatePriceTimeSeries,col="red",)
+DRAWCURVE <- function(priceHisory){
+  priceTimeSeries <- ts(priceHisory)
+  plot.ts(priceTimeSeries,col="red")
 }
 
-shinyServer(function(input,output){
+shinyServer(function(input, output, session) {
+  output$control1 <- renderUI({
+    selectInput("developerName", "Select Developer Name", choices = levels(ALLPROFILE[['developer']]))
+  })
   
-  #findDeveloperGamePrice(getPrice,findDeveloperGameList(getContent,input$selectDeveloper))
-  #findDeveloperGameList(getContent,input$selectDeveloper)  
-  #nameList=developerGameList[,3]
+  output$control2 <- renderUI({
+    x <- input$developerName
+    if (any(
+      is.null(x)
+    ))
+      return("Select")
+    choice2 <-as.character(ALLPROFILE[which(ALLPROFILE[['developer']] == x),2])
+    selectInput("gameName", "Select Game Name", choices = choice2)
+  })
   
-  output$plotTS <- renderPlot(drawCurve(input$selectGames,findDeveloperGamePrice(getPrice,findDeveloperGameList(getContent,input$selectDeveloper))))  
-  
+  output$plotTS <- renderPlot({
+     developerFile<- FINDDEVELOPERPROFILE(input$developerName)
+     priceHistory<- FINDDEVELOPERGAMEPRICELIST(input$gameName,developerFile)
+     drawCurve<- DRAWCURVE(priceHistory)
+     drawCurve
+  })
   
 })

@@ -1,6 +1,4 @@
 library(shiny)
-allDevelopName <- read.csv('./Data/allDeveloperName.csv',header=F)
-
 shinyUI(fluidPage(
   title="GameAnalysis",
   titlePanel("GameTrendAnalysis"),
@@ -9,20 +7,18 @@ shinyUI(fluidPage(
            tabsetPanel(
              title="PriceTrend",
              type="pills",
-             tabPanel(  
-               selectInput("selectDeveloper","Select Developer", choices=levels(allDevelopName[,1]))
+             tabPanel(
+               uiOutput("control1")
              ),
-             tabPanel(  
-               selectInput("selectGames","Select Game", choices=c("app_102820","app_102822","app_47790"))
-             )
+             tabPanel(
+               uiOutput("control2")
+             )        
            )
     ),
     mainPanel(
       tabsetPanel(
         tabPanel("PlotTS",plotOutput("plotTS"))
       )
-    )
-    
+    ) 
   )
-  
 ))
