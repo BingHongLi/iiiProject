@@ -11,8 +11,8 @@ import os
 # To bypass the website preventing crawler, use the headers to mimic browser.
 hder =  {'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.124 Safari/537.36'} 
 s_url = 'http://www.metacritic.com/browse/games/title/pc'
-root = 'E:\\python\\MetacriticCrawler\\res'
-#root = 'D:\\YB802\\python\\MetacriticCrawler\\res' 
+root = 'E:\\python\\workspace\\MetacriticCrawler\\res'
+#root = 'D:\\YB802\\python\\workspace\\MetacriticCrawler\\res' 
 
 if not os.path.exists(root + '\\' + 'link'): 
     os.makedirs(root + '\\' + 'link')
