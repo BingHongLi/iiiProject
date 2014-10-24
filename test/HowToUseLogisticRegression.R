@@ -1,3 +1,4 @@
+#########Old-Version
 ORIGINDATA <- read.csv('E:/testLogistic2.csv')
 
 View(ORIGINDATA)
@@ -6,9 +7,89 @@ ADJUSTDATA <- ORIGINDATA
 #ADJUSTDATA['PRICE'] <-(ADJUSTDATA['PRICE']-min(ADJUSTDATA['PRICE']))/(max(ADJUSTDATA['PRICE']-min(ADJUSTDATA['PRICE'])))
 View(ADJUSTDATA)
 
+
 #log.glm <- glm(PROMOTION~YEAR+MONTH+DAY+WEEK+HOLIDAY,family=binomial,data=ADJUSTDATA)
 log.glm <- glm(PROMOTION~HOLIDAY,family=binomial,data=ADJUSTDATA)
 #possion.glm <- glm(PRICE~YEAR+MONTH+DAY+WEEK+HOLIDAY,family=poisson,data=ADJUSTDATA)
 
 log.step <- step(log.glm)
 summary(log.step)
+
+##################################
+clusterMethod=list()
+max(test[clusterMethod])
+# Create Model
+#test <- read.csv('./data/forAnalysisCSATTR.csv')
+test <- read.csv('forAnalysisCSATTR.csv')
+clusterNames = c("kmeans8","kmeans10","kmeans20","kmeans50","clara10","clara13","clara20","clara50","pamk6","pamk7","pamk8","pamk15","pamk20","pamk25","hclust8","hclust20","diana6","diana8","diana10","diana15","diana20")
+#clusterNames = c("kmeans8","kmeans10","clara10","clara13","pamk6","pamk7","pamk8","hclust8","diana6","diana8","diana10","diana15")
+clusterMethod <- list()
+
+calculateModel <- function(x){
+  temp <- list()
+  for(i in 1:max(test[x])){
+    if(nrow(test[which(test[x]==i),])==0){
+      next
+    }
+    tempAnalysis <- test[which(test[x]==i),]
+    c90  <- step(glm(day90~Adventure+Casual+EarlyAccess+Indie+Racing+RPG+Simulation+Strategy,family=binomial,data=tempAnalysis))
+    c180 <- step(glm(day180~Adventure+Casual+EarlyAccess+Indie+Racing+RPG+Simulation+Strategy,family=binomial,data=tempAnalysis))
+    c270 <- step(glm(day270~Adventure+Casual+EarlyAccess+Indie+Racing+RPG+Simulation+Strategy,family=binomial,data=tempAnalysis))
+    c360 <- step(glm(day360~Adventure+Casual+EarlyAccess+Indie+Racing+RPG+Simulation+Strategy,family=binomial,data=tempAnalysis))
+    c450 <- step(glm(day450~Adventure+Casual+EarlyAccess+Indie+Racing+RPG+Simulation+Strategy,family=binomial,data=tempAnalysis))
+    c540 <- step(glm(day540~Adventure+Casual+EarlyAccess+Indie+Racing+RPG+Simulation+Strategy,family=binomial,data=tempAnalysis))
+    c630 <- step(glm(day630~Adventure+Casual+EarlyAccess+Indie+Racing+RPG+Simulation+Strategy,family=binomial,data=tempAnalysis))
+    c720 <- step(glm(day720~Adventure+Casual+EarlyAccess+Indie+Racing+RPG+Simulation+Strategy,family=binomial,data=tempAnalysis))
+    c810 <- step(glm(day810~Adventure+Casual+EarlyAccess+Indie+Racing+RPG+Simulation+Strategy,family=binomial,data=tempAnalysis))
+    temp[[i]]  <- list(c90 = c90,c180 = c180,c270 = c270,c360 = c360,c450 = c450,c540 = c540,c630 = c630,c720 = c720,c810 = c810)    
+  }
+  clusterMethod[[x]]<<- temp
+}
+
+sapply(clusterNames,calculateModel)
+###############################################
+
+### getModel
+calculateModel <- function(x){
+  temp <- list()
+  for(i in 1:max(test[x])){
+    if(nrow(test[which(test[x]==i),])==0){
+      next
+    }
+    tempAnalysis <- test[which(test[x]==i),]
+    c90   <- step(glm(day90~Adventure+Casual+EarlyAccess+Indie+Racing+RPG+Simulation+Strategy,family=binomial,data=tempAnalysis))
+    c180 <- step(glm(day180~Adventure+Casual+EarlyAccess+Indie+Racing+RPG+Simulation+Strategy,family=binomial,data=tempAnalysis))
+    c270 <- step(glm(day270~Adventure+Casual+EarlyAccess+Indie+Racing+RPG+Simulation+Strategy,family=binomial,data=tempAnalysis))
+    c360 <- step(glm(day360~Adventure+Casual+EarlyAccess+Indie+Racing+RPG+Simulation+Strategy,family=binomial,data=tempAnalysis))
+    c450 <- step(glm(day450~Adventure+Casual+EarlyAccess+Indie+Racing+RPG+Simulation+Strategy,family=binomial,data=tempAnalysis))
+    c540 <- step(glm(day540~Adventure+Casual+EarlyAccess+Indie+Racing+RPG+Simulation+Strategy,family=binomial,data=tempAnalysis))
+    c630 <- step(glm(day630~Adventure+Casual+EarlyAccess+Indie+Racing+RPG+Simulation+Strategy,family=binomial,data=tempAnalysis))
+    c720 <- step(glm(day720~Adventure+Casual+EarlyAccess+Indie+Racing+RPG+Simulation+Strategy,family=binomial,data=tempAnalysis))
+    c810 <- step(glm(day810~Adventure+Casual+EarlyAccess+Indie+Racing+RPG+Simulation+Strategy,family=binomial,data=tempAnalysis))
+    temp[[i]]  <- list(c90 = c90,c180 = c180,c270 = c270,c360 = c360,c450 = c450,c540 = c540,c630 = c630,c720 = c720,c810 = c810)    
+  }
+  clusterMethod[[x]]<<- temp
+}
+
+sapply(clusterNames,calculateModel)
+
+
+### getDay
+test.frame <- data.frame(GenreAction=0,Accounting=0,Action=0,Adventure=0,AnimationAndModeling=0,AudioProduction=0,Casual=0,DesignAndIllustration=0,EarlyAccess=0,Education=0,FreeToPlay=0,Indie=0,MassivelyMultiplayer=0,Racing=0,RPG=0,Simulation=0,Sports=0,Strategy=0)
+forTestList <- list(gameName='aaa',clusterNumber=1,tag=test.frame)
+clusterModel <- readRDS('./data/forTestLogisticPredict.RDS') #for test Function
+#clusterModel <- readRDS('Model.RDS')
+getDay <- function(gameName,clusterNumber,tag){
+  tempDataFrame <- data.frame()
+  for(i in names(clusterModel[[clusterNumber]])){
+    probability <- predict(clusterModel[[clusterNumber]][[i]],tag)
+    tempDataFrame <- rbind(tempDataFrame,data.frame(modelName=i,probability=probability))
+  }
+  tempDayString <- tempDataFrame[which(tempDataFrame[,2]==max(tempDataFrame[,2])),1][1]
+  print(tempDayString)
+  day <- as.numeric(gsub("c","",tempDayString))
+  #day <- as.numeric(gsub("d","",tempDayString))
+  returnList <- list(gameName=gameName,clusterNumber=clusterNumber,day=day)
+  return(returnList)
+}
+unitTest <- getDay(forTestList$gameName,forTestList$clusterNumber,forTestList$tag)
