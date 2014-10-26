@@ -14,7 +14,7 @@ getDiscount <- function(listName, clusterMethod="pamk_7", class = 5, RDPath="./d
   orgPData = read.csv(orgPDPath, header=F, sep=",")   
   
   #srcData[row of record in the cluster, col with game's name and time series]
-  rawData <- srcData[which(srcData[clusterMethod] == clusterNumber), c(1, 43:ncol(srcData))]  
+  rawData <- srcData[which(srcData[clusterMethod] == clusterNumber), c(1, 44:ncol(srcData))]  
   
   #Create the col "orgPrice" as for data processing.
   orgPrice <- rep(NA, nrow(rawData)) #Create a vector of orgPrice(original price) as the column in fullData.
