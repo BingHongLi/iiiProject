@@ -1,27 +1,28 @@
 #install.packages('party')
 #library(party)
 
-getDiscount <- function(listName, clusterMethod="pamk_7", class = 5, RDPath="./data/ForCRASHNew.csv", orgPDPath="./data/originprice.csv", wd="E:/R/TimeSeries"){
+getDiscount <- function(listName, clusterMethod="pamk_7", class = 5, RDPath="./data/ForCRASHNewT.csv", orgPDPath="./data/originprice.csv", wd="E:/R/TimeSeries"){
   gameName = listName$gameName
   clusterNumber = listName$clusterNumber
   day = listName$day
+  prob = listName$prob
   
   tsStart=2
   start=1  
   
   setwd(wd)
   srcData = read.csv(RDPath, header=T, sep=",")  
-  orgPData = read.csv(orgPDPath, header=F, sep=",")   
+  orgPData = read.csv(orgPDPath, header=T, sep=",")   
   
   #srcData[row of record in the cluster, col with game's name and time series]
-  rawData <- srcData[which(srcData[clusterMethod] == clusterNumber), c(1, 44:ncol(srcData))]  
+  rawData <- srcData[which(srcData[clusterMethod] == clusterNumber), c(1, 115:ncol(srcData))]  
   
   #Create the col "orgPrice" as for data processing.
   orgPrice <- rep(NA, nrow(rawData)) #Create a vector of orgPrice(original price) as the column in fullData.
   fullData <- cbind(orgPrice, rawData) 
-  for(i in 1:nrow(orgPData)){ 
-    rowInFD = which(fullData[,2] == as.character(orgPData[i,1])) #Catch the row number which has record in data of original price.
-    fullData[rowInFD ,1] = orgPData[i ,2] #Put the original price value into fullData.
+  for(i in 1:nrow(fullData)){ 
+    rowInOrgPD = which(orgPData[,1] == as.character(fullData[i,2])) #Catch the row number which has record in data of original price.
+    fullData[i ,1] = orgPData[rowInOrgPD ,2] #Put the original price value into fullData.
   }    
   
   cut <- na.omit(cbind(fullData["orgPrice"] ,fullData[,(tsStart+start):(tsStart+day)])) #Combine the orgPrice with time interval for analyzing, and remove the record with NA.  
@@ -35,9 +36,9 @@ getDiscount <- function(listName, clusterMethod="pamk_7", class = 5, RDPath="./d
       dis = round(dis, 2) * 100 #Transfer the value to percentage.
       remainder = dis %% class #Caculate the remainder.
       if(floor(class/2)+1 > remainder && remainder > 0) #If the reminder < (class/2)+1  (approach 0)
-        x = floor(dis / class) * class #Classify to previous class.
+        dis = floor(dis / class) * class #Classify to previous class.
       if(class > remainder && remainder >= floor(class/2)+1) #If the reminder > (class/2)+1  (approach next class)
-        x = floor(dis / class) * class + class #Classify to next class.
+        dis = floor(dis / class) * class + class #Classify to next class.
       dis = as.character(dis / 100) #Transfer the number to character.
     }
     discount <- c(discount, dis)
@@ -51,6 +52,6 @@ getDiscount <- function(listName, clusterMethod="pamk_7", class = 5, RDPath="./d
   gameData <- cbind(discount=NA, rawData[which(rawData[1] == gameName),-1])
   pDiscount <- predict(ct, newdata=gameData)
   
-  result <- c(gameName=gameName, discount=as.character(pDiscount), day=day)
+  result <- list(gameName=gameName, discount=as.character(pDiscount), day=day, prob=prob)
   return(result)
 }
