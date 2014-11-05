@@ -1,0 +1,73 @@
+#install.packages('party')
+library(party)
+
+modelDis <- function(day, clusterMethod, clusterNumber, class = 5, RDPath="./data/ForCRASHNewT.csv", orgPDPath="./data/originprice.csv", wd="E:/R/TimeSeries"){
+  #clusterNumber = listName$clusterNumber
+  #day = listName$day 
+  
+  tsStart=2
+  start=1  
+  
+  setwd(wd)
+  srcData = read.csv(RDPath, header=T, sep=",")  
+  orgPData = read.csv(orgPDPath, header=T, sep=",")   
+  
+  #srcData[row of record in the cluster, col with game's name and time series]
+  rawData <- srcData[which(srcData[clusterMethod] == clusterNumber), c(1, 115:ncol(srcData))]  
+  
+  #Create the col "orgPrice" as for data processing.
+  orgPrice <- rep(NA, nrow(rawData)) #Create a vector of orgPrice(original price) as the column in fullData.
+  fullData <- cbind(orgPrice, rawData) 
+  for(i in 1:nrow(fullData)){ 
+    rowInOrgPD = which(orgPData[,1] == as.character(fullData[i,2])) #Catch the row number which has record in data of original price.
+    fullData[i ,1] = orgPData[rowInOrgPD ,2] #Put the original price value into fullData.
+  }    
+  
+  cut <- na.omit(cbind(fullData["orgPrice"] ,fullData[,(tsStart+start):(tsStart+day)])) #Combine the orgPrice with time interval for analyzing, and remove the record with NA.  
+  
+  #cut[ncol(cut)] / cut["orgPrice"]: Calculate the discount of each time series from the final record.
+  #Put the result into the discount vector as nominal label for analyzation.
+  discount <- NULL  
+  forAnalyze <- NULL
+  if(!is.na(cut) && !is.null(cut)){
+    for (dis in (cut[ncol(cut)] / cut["orgPrice"])){
+      if(!is.null(dis) && !is.na(dis)){  #If the input value is missing or null then return NA/NULL.
+        dis = as.numeric(dis)
+        dis = round(dis, 2) * 100 #Transfer the value to percentage.
+        remainder = dis %% class #Caculate the remainder.
+        if(floor(class/2)+1 > remainder && remainder > 0) #If the reminder < (class/2)+1  (approach 0)
+          dis = floor(dis / class) * class #Classify to previous class.
+        if(class > remainder && remainder >= floor(class/2)+1) #If the reminder > (class/2)+1  (approach next class)
+          dis = floor(dis / class) * class + class #Classify to next class.
+        dis = as.character(dis / 100) #Transfer the number to character.
+      }
+      discount <- c(discount, dis)
+    }  
+    forAnalyze <- data.frame(cbind(discount, cut[,-1])) #Remove the original price from table of cut, and combine with discount as Classfied ID.    
+  }
+  
+  ct <- NULL
+  if(nrow(forAnalyze) > 1)
+    ct <- ctree(discount~., data=forAnalyze, controls=ctree_control(minsplit=30, minbucket=10, maxdepth=25))
+  #plot(ct, ip_args=list(pval=FALSE), ep_args=list(digits=0))
+    
+  return(ct)
+}
+
+
+
+#Modeling
+srcData = read.csv("./data/ForCRASHNewT.csv", header=T, sep=",")
+day <- seq(1:923)
+method <- colnames(srcData[,73:114])
+cluster <- NULL
+for(i in 73:114){
+  cluster <- c(cluster, max(srcData[,i]))
+}
+
+
+disMdList <- NULL
+for(method in clusterMethod)
+  for(cNum in clusterNumber)
+    for(day in 1:923)
+      disMdList[[method]][[cNum]][[day]] <- modelDis(method, cNum, day)

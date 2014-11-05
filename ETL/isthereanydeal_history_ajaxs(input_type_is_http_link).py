@@ -59,7 +59,7 @@ def isthereanydeal_history_ajaxs(input_file, output_folder):
         file_W.write(change_to_json.encode('utf8'))
 
 def main():
-    isthereanydeal_history_ajaxs('simcitylimitededition', 'C:/Users/BigData/Desktop/')
+    isthereanydeal_history_ajaxs('ageofwonders', 'C:/Users/BigData/Desktop/')
 
 if __name__ == "__main__":
     main()
